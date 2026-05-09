@@ -22,100 +22,61 @@ days, the following moments characterise the distribution:
 | Excess kurtosis | 13.76 | 0 |
 | Jarque–Bera p-value | < 10⁻²⁰⁰ | — |
 
-The headline number is the **excess kurtosis of 13.76**. A normal distribution has excess
-kurtosis of zero; anything above ~3–4 is considered practically heavy-tailed for financial
-modelling purposes. At 13.76, the empirical distribution assigns orders of magnitude more
-probability to extreme moves than a Gaussian would. The Jarque–Bera test rejects normality
-with a p-value so small it is effectively zero — there is no statistical ambiguity here.
-
-Negative skewness (−0.998) reflects the structural asymmetry of oil markets: supply-side shocks
-and demand collapses (COVID-19 March 2020, Russia invasion February 2022) create much sharper
-left-tail events than equivalent recoveries. This asymmetry will become a model limitation
-discussed in Part 4.
+Excess kurtosis of **13.76** (Gaussian baseline = 0). JB test p < 10⁻²⁰⁰; non-normality is
+not a sample artefact. Negative skewness (−0.998) reflects supply-side shock asymmetry —
+demand collapses produce sharper left-tail events than equivalent recoveries. Documented
+as a model limitation in Part 4.
 
 ---
 
 ### 1.2 ACF of Returns and Squared Returns
 
-**ACF of raw returns:** No significant autocorrelation beyond lag 1–2. Returns are not
-meaningfully predictable — consistent with weak-form market efficiency in liquid commodity
-futures.
+| Series | Result |
+|---|---|
+| ACF of raw returns | No significant AC beyond lag 1–2; weak-form efficiency holds |
+| ACF of squared returns | Significant to lag 20+ (Bartlett 95% CI); confirms volatility clustering |
 
-**ACF of squared returns:** Highly significant autocorrelation persisting to lag 20 and beyond
-(Bartlett 95% confidence interval). This is the canonical ARCH test result. Large-magnitude
-days cluster with large-magnitude days; calm days cluster with calm days. This property —
-volatility clustering — is not a subtle statistical artefact. It is visible to the naked eye
-in the return series: periods of turbulence (2016 oil glut, 2018 correction, 2020 COVID crash,
-2022 geopolitical spike) are clearly distinct from calm regimes.
-
-**What this means for modelling:** Any model that treats daily returns as independent draws
-from a fixed distribution is empirically wrong. The model must explicitly describe how
-volatility evolves from one day to the next. This rules out simple Monte Carlo from parametric
-i.i.d. distributions and forces us into the GARCH family.
+**Implication:** i.i.d. return models are empirically rejected. GARCH family required.
 
 ---
 
 ### 1.3 Tail-Focused Diagnostics
 
-Three complementary tail diagnostics were computed. They agree.
+Three complementary tail diagnostics:
 
-#### QQ Plot Against Student-t Reference
+#### QQ Plot — Student-t Reference
 
-A Student-t distribution was fit to the standardised returns by maximum likelihood. The
-resulting QQ plot shows that the Student-t reference line fits the bulk of the distribution
-well, but both tails deviate upward — meaning even the Student-t slightly under-predicts the
-frequency of extreme observations. This is consistent with the heavy-volatility-regime effect:
-periods of extreme volatility generate even more kurtosis than the Student-t parameterisation
-captures.
+Student-t fit to standardised returns by MLE. Bulk fits well; both tails deviate upward,
+indicating the Student-t slightly under-predicts extreme observation frequency.
+Consistent with regime-mixing inflating empirical kurtosis.
 
 #### Hill Estimator
 
-The Hill estimator computes the tail index α across a range of order statistics k. The
-estimate stabilises in a plateau around **α ≈ 3.5–4.5** for k ∈ [40, 80]. Interpretation:
+Tail index α stabilises at **α ≈ 3.5–4.5** for k ∈ [40, 80].
 
-- α > 2 → finite variance (confirmed: the return series has a well-defined standard deviation)
-- α < 4 → diverging or near-infinite kurtosis (confirmed: excess kurtosis of 13.76 and growing
-  with sample size)
-- α ≈ 3.5–4.5 → Pareto-like tail, substantially heavier than exponential
+| Condition | Value | Implication |
+|---|---|---|
+| α > 2 | ✓ | Finite variance |
+| α < 4 | ✓ | Near-diverging kurtosis |
+| α ≈ 3.5–4.5 | ✓ | Consistent with Student-t ν ≈ 4–6 (fitted: 5.19) |
 
-This tail index range is consistent with Student-t degrees of freedom ν ≈ 4–6, which is
-exactly what our fitted model produces (ν = 5.19). The diagnostics are internally consistent.
+#### Mean-Excess Plot (Left Tail)
 
-#### Mean-Excess Plot (Left Tail / Losses)
-
-The mean-excess function e(u) = E[X − u | X > u] (applied to losses X = −r_t) slopes upward
-through the relevant quantile range. Upward slope is the signature of a Pareto/heavy tail. A
-flat slope would indicate an exponential tail; downward would indicate a thin (Weibull) tail.
-Brent crude losses are unambiguously heavy-tailed under this diagnostic.
+e(u) = E[X − u | X > u] applied to losses X = −r_t. Slope is **upward** through the
+relevant quantile range → Pareto-class tail. Flat slope = exponential; downward = thin (Weibull).
 
 ---
 
-### 1.4 Diagnostic Interpretation Prose
+### 1.4 Modelling Implications of Diagnostics
 
-Brent crude log-returns over the 2015–2026 sample exhibit all three canonical stylised facts
-of energy commodity markets. First, excess kurtosis of 13.76 — nearly fourteen times what a
-Gaussian distribution would produce — confirms that extreme moves occur at a fundamentally
-different frequency than classical models assume. The Jarque–Bera test rejects normality with
-effectively zero p-value across multiple sub-periods, confirming this is not a sample-size
-artefact. Daily return standard deviation of 2.59% headline volatility substantially understates
-the true risk, because it averages over both calm and turbulent regimes without distinguishing
-between them.
-
-Second, the ACF of squared returns shows persistent and statistically significant autocorrelation
-to lag 20 or beyond. This is not marginal — the autocorrelation coefficients are large enough to
-be visible in raw stem plots without confidence intervals. Volatility clustering is the most
-robust empirical fact in financial time series, and Brent crude exhibits it in extreme form. The
-COVID crash (March 2020) and the Russia-Ukraine escalation (February 2022) both created
-multi-week periods of sustained elevated volatility that would be completely invisible to any
-model assuming i.i.d. returns.
-
-Third, the Hill estimator stabilises at α ≈ 3.5–4.5, and the mean-excess plot slopes upward
-through the left tail. Together, these place Brent in "finite variance but near-infinite kurtosis"
-territory — a Pareto-class tail, not an exponential one. A Gaussian innovation distribution
-would assign probability of roughly 10⁻¹⁵ to a 10% daily move; the empirical record shows
-such moves happening every few years. These three diagnostics — volatility clustering, leverage
-asymmetry, and Pareto-class tails — jointly and independently motivate GJR-GARCH(1,1) with
-Student-t innovations as the modelling choice.
+| Diagnostic finding | Value / result | Model implication |
+|---|---|---|
+| Excess kurtosis | 13.76 | Student-t innovations required; Gaussian assigns ~0 probability to observed extremes |
+| Jarque–Bera p-value | < 10⁻²⁰⁰ | Non-normality is not a sample artefact |
+| ACF sq. returns significant at | lag 20+ | GARCH family required; i.i.d. models are empirically wrong |
+| Hill estimator plateau | α ≈ 3.5–4.5, k ∈ [40, 80] | Finite variance, near-diverging kurtosis; consistent with ν ≈ 5–6 |
+| Mean-excess plot slope | Upward (left tail) | Pareto-class tail, not exponential or thin |
+| Leverage scatter | Negative deciles → higher subsequent vol | GJR asymmetry term γ required |
 
 ---
 
@@ -141,41 +102,18 @@ z_t ~ t(ν)        (Student-t with ν degrees of freedom)
       + β · σ²_{t-1}
 ```
 
-#### In Plain English (Equation by Equation)
+**Parameter interpretation:**
 
-**r_t = μ + ε_t**
-Today's return equals a constant average (μ ≈ 0.02%) plus a random shock ε_t. The shock is
-what we cannot predict — it is drawn fresh each day.
+| Parameter | Estimate | Role |
+|---|---|---|
+| μ | 0.0217 | Constant mean return |
+| ω | 0.0167 | Baseline (floor) variance |
+| α | 0.0326 | ARCH term — symmetric shock impact |
+| γ | 0.0825 | GJR asymmetry — activates on negative ε_{t-1} |
+| β | 0.9022 | GARCH term — vol persistence |
+| ν | 5.19 | Student-t tail heaviness |
 
-**ε_t = σ_t · z_t**
-The shock is scaled by today's volatility σ_t. On a high-volatility day, even a "standard-sized"
-random draw produces a large return move. This is the key mechanism: the same random number
-produces different outcomes on different days depending on the prevailing volatility level.
-
-**z_t ~ t(ν)**
-The random draw comes from a Student-t distribution, not a Gaussian. The parameter ν (fitted
-at 5.19 on Brent data) controls how fat the tails are. Lower ν = fatter tails = more extreme
-events. At ν = 5.19, extreme crashes happen at roughly the empirically observed frequency.
-
-**σ²_t = ω + (α + γ · 1_{ε_{t-1} < 0}) · ε²_{t-1} + β · σ²_{t-1}**
-
-This is where all the structure lives:
-- **ω** is a small baseline level of variance (the floor)
-- **α · ε²_{t-1}** adds yesterday's shock squared — if yesterday was turbulent, today is expected
-  to be turbulent too (volatility clustering)
-- **γ · 1_{ε_{t-1} < 0} · ε²_{t-1}** is the GJR term: it activates only when yesterday's return
-  was negative. If the market fell yesterday, today's expected volatility is α + γ times the
-  shock squared. If the market rose yesterday, it is only α times the shock squared. Since
-  γ = 0.08 > 0, crashes amplify volatility more than rallies of equal magnitude.
-- **β · σ²_{t-1}** carries yesterday's volatility forward. With β ≈ 0.91, most of yesterday's
-  volatility level persists into today — this is why storms last for weeks, not days.
-
-**Persistence = α + γ/2 + β = 0.978**
-
-This is the key model-level statistic. Persistence measures how slowly volatility shocks decay.
-At 0.978, a shock takes many weeks to fully dissipate — consistent with the multi-week elevated
-volatility periods observed after the 2020 and 2022 events. Persistence < 1 is required for
-mathematical stationarity (the model has a well-defined long-run volatility level).
+**Persistence** = α + γ/2 + β = 0.978 (< 1, stationary; near-IGARCH behaviour)
 
 ---
 
