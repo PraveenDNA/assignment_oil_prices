@@ -1,5 +1,11 @@
 # AWS Deployment Design — Brent Crude Stress-Test Scenario Engine
 
+## Architecture Diagram
+
+![AWS Architecture](aws-architecture.png)
+
+---
+
 ## How a risk analyst invokes this on demand
 
 A risk analyst opens an internal web portal authenticated via corporate SSO.
@@ -13,7 +19,7 @@ infrastructure knowledge required.
 
 ---
 
-## Architecture diagram
+## Architecture — ASCII reference
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
